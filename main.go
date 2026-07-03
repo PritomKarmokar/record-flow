@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"github.com/PritomKarmokar/record-flow/cmd/config"
+	"github.com/labstack/echo/v5"
+)
 
 func main() {
-	fmt.Println("Hello, from Record Flow")
+	e := echo.New()
+
+	config.LoadEnv()
+	config.LoggerConfig()
+	
+	config.StartServer(e)
 }
