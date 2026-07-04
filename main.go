@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/PritomKarmokar/record-flow/cmd/config"
 	"github.com/labstack/echo/v5"
+	"net/http"
 )
 
 func main() {
@@ -10,6 +11,13 @@ func main() {
 
 	config.LoadEnv()
 	config.LoggerConfig()
-	
+	config.EchoConfig(e)
+
+	e.GET("/", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Hello, World!",
+		})
+	})
+
 	config.StartServer(e)
 }
