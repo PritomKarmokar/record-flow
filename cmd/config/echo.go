@@ -12,4 +12,7 @@ func EchoConfig(e *echo.Echo) {
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
+	// validator config
+	RegisterValidator(e)
+
 }

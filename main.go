@@ -12,6 +12,7 @@ func main() {
 	config.LoadEnv()
 	config.LoggerConfig()
 	config.EchoConfig(e)
+	config.ConnectDB()
 
 	e.GET("/", func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{
