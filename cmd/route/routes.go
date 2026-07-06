@@ -11,4 +11,14 @@ func RegisterRoutes(e *echo.Echo) {
 
 	// Apply security headers globally
 	e.Use(middleware.SecurityHeaders())
+
+	// Apply CORS for web (configure allowed origins in env)
+	e.Use(middleware.CORS())
+
+	// Base prefix for routes
+	basePrefix := e.Group("/record-flow")
+
+	// ==== SERVICE ROUTES (Health checks) ====
+	healthGroup := basePrefix.Group("/health")
+	RegisterServiceRoutes(healthGroup)
 }

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/PritomKarmokar/record-flow/cmd/config"
+	"github.com/PritomKarmokar/record-flow/cmd/route"
 	"github.com/labstack/echo/v5"
-	"net/http"
 )
 
 func main() {
@@ -13,12 +13,6 @@ func main() {
 	config.LoggerConfig()
 	config.EchoConfig(e)
 	config.ConnectDB()
-
-	e.GET("/", func(c *echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"message": "Hello, World!",
-		})
-	})
-
+	route.RegisterRoutes(e)
 	config.StartServer(e)
 }

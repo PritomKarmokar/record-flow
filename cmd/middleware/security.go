@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/labstack/echo/v5"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 func SecurityHeaders() echo.MiddlewareFunc {
@@ -54,6 +56,70 @@ func SecurityHeaders() echo.MiddlewareFunc {
 				c.Response().Header().Set("Pragma", "no-cache")
 				c.Response().Header().Set("Expires", "0")
 			}
+			return next(c)
+		}
+	}
+}
+
+// CORS middleware with flexible configuration
+// Handles Cross-Origin Resource Sharing for web applications
+func CORS() echo.MiddlewareFunc {
+	// Get allowed origins from config
+	allowedOriginsStr := viper.GetString("ALLOWED_ORIGINS")
+	var allowedOrigins []string
+
+	if allowedOriginsStr == "*" {
+		// Development mode - allow all origins
+		allowedOrigins = []string{"*"}
+	} else if allowedOriginsStr != "" {
+		// Production mode - specific origins
+		allowedOrigins = strings.Split(allowedOriginsStr, ",")
+		// Trim whitespace
+		for i, origin := range allowedOrigins {
+			allowedOrigins[i] = strings.TrimSpace(origin)
+		}
+	} else {
+		// Default - localhost only
+		allowedOrigins = []string{
+			"http://localhost:3000",
+			"http://localhost:8080",
+			"http://127.0.0.1:3000",
+			"http://127.0.0.1:8080",
+		}
+	}
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			origin := c.Request().Header.Get("Origin")
+
+			// Check if origin is allowed
+			allowed := false
+			if len(allowedOrigins) == 1 && allowedOrigins[0] == "*" {
+				// Allow all origins (development only)
+				allowed = true
+				origin = "*"
+			} else {
+				for _, allowedOrign := range allowedOrigins {
+					if origin == allowedOrign {
+						allowed = true
+						break
+					}
+				}
+			}
+
+			if allowed {
+				// Set CORS headers
+				c.Response().Header().Set("Access-Control-Allow-Origin", origin)
+				c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+				c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+				c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID, X-CSRF-Token")
+				c.Response().Header().Set("Access-Control-Expose-Headers", "X-Request-ID, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset")
+				c.Response().Header().Set("Access-Control-Max-Age", "86400") // 24 hours
+			}
+			// Handle preflight requests
+			if c.Request().Method == http.MethodOptions {
+				return c.NoContent(http.StatusNoContent)
+			}
+
 			return next(c)
 		}
 	}
